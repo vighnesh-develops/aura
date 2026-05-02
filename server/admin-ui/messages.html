@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Messages | AURASOUND Admin</title>
+    <link rel="stylesheet" href="/admin/admin.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">AURA<span style="color: var(--accent)">ADMIN</span></div>
+        <nav>
+          <a href="/admin/dashboard.html">Dashboard</a>
+          <a href="/admin/users.html">Users</a>
+          <a href="/admin/products.html">Products</a>
+          <a href="/admin/orders.html">Orders</a>
+          <a class="active" href="/admin/messages.html">Messages</a>
+          <a href="#" id="logoutLink">Logout</a>
+        </nav>
+      </aside>
+      <main>
+        <h1>Customer messages</h1>
+        <div id="list"></div>
+      </main>
+    </div>
+    <script src="/admin/admin-shared.js"></script>
+    <script>
+      requireAdminSession().then(async (user) => {
+        if (!user) return;
+        document.getElementById("logoutLink").addEventListener("click", (e) => {
+          e.preventDefault();
+          logout();
+        });
+        await render();
+      });
+
+      async function render() {
+        const msgs = await adminApi("/admin/api/messages");
+        const host = document.getElementById("list");
+        if (!msgs.length) {
+          host.innerHTML = "<p style=color:var(--muted)>No messages.</p>";
+          return;
+        }
+        host.innerHTML = msgs
+          .map(
+            (m) => `
+          <div class="table-wrap" style="margin-bottom:1rem;border-left:4px solid ${m.read_flag ? "transparent" : "var(--accent)"}">
+            <table>
+              <tr><th>From</th><td>${escapeHtml(m.name)} &lt;${escapeHtml(m.email)}&gt;</td></tr>
+              <tr><th>Subject</th><td>${escapeHtml(m.subject)}</td></tr>
+              <tr><th>Message</th><td><pre class="raw">${escapeHtml(m.message)}</pre></td></tr>
+              <tr><th>Received</th><td>${escapeHtml(m.created_at)} ${m.read_flag ? "(read)" : "(new)"}</td></tr>
+              <tr><th>Actions</th><td>
+                <button type="button" data-action="read" data-id="${m.id}" ${m.read_flag ? "disabled" : ""}>Mark read</button>
+                <button type="button" class="danger" data-action="del" data-id="${m.id}">Delete</button>
+              </td></tr>
+            </table>
+          </div>`
+          )
+          .join("");
+
+        host.querySelectorAll("button[data-action]").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-id");
+            try {
+              if (btn.dataset.action === "read") {
+                await adminApi(`/admin/api/messages/${id}`, {
+                  method: "PATCH",
+                  body: JSON.stringify({ read: true }),
+                });
+              } else {
+                await adminApi(`/admin/api/messages/${id}`, { method: "DELETE" });
+              }
+              await render();
+            } catch (e) {
+              alert(e.message);
+            }
+          });
+        });
+      }
+
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+    </script>
+  </body>
+</html>

@@ -1,6 +1,36 @@
+// Initialize GSAP & Lenis Smooth Scroll
+if (typeof window !== 'undefined' && typeof window.Lenis !== 'undefined') {
+  const lenis = new window.Lenis({
+    duration: 1.2,
+    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // easeOutExpo
+    direction: 'vertical',
+    gestureDirection: 'vertical',
+    smooth: true,
+    mouseMultiplier: 1,
+    smoothTouch: false,
+    touchMultiplier: 2,
+    infinite: false,
+  });
+
+  if (typeof window.gsap !== 'undefined' && typeof window.ScrollTrigger !== 'undefined') {
+    lenis.on('scroll', window.ScrollTrigger.update);
+    window.gsap.ticker.add((time) => {
+      lenis.raf(time * 1000);
+    });
+    window.gsap.ticker.lagSmoothing(0);
+  } else {
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+  }
+}
+
 const Store = (() => {
   const CART_KEY = "aurasound_cart";
   const ORDER_KEY = "aurasound_last_order";
+  const ORDERS_KEY = "aurasound_orders";
 
   const products = [
     {
@@ -650,8 +680,66 @@ const Store = (() => {
   const formatINR = (amount) =>
     new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(amount);
 
-  const saveLastOrder = (order) => write(ORDER_KEY, order);
+  const saveLastOrder = (order) => {
+    const orders = read(ORDERS_KEY, []);
+    const existingIndex = orders.findIndex((item) => item.id === order.id);
+    if (existingIndex >= 0) {
+      orders[existingIndex] = order;
+    } else {
+      orders.push(order);
+    }
+    write(ORDERS_KEY, orders);
+    write(ORDER_KEY, order);
+  };
   const getLastOrder = () => read(ORDER_KEY, null);
+  const getOrders = () => read(ORDERS_KEY, []);
+  const getOrderById = (id) =>
+    getOrders().find((order) => order.id?.toLowerCase() === id?.trim().toLowerCase());
+
+  const updateOrderStatus = (id, status) => {
+    const orders = read(ORDERS_KEY, []);
+    const existingIndex = orders.findIndex((item) => item.id === id);
+    if (existingIndex >= 0) {
+      orders[existingIndex].status = status;
+      write(ORDERS_KEY, orders);
+      const lastOrder = read(ORDER_KEY, null);
+      if (lastOrder && lastOrder.id === id) {
+        lastOrder.status = status;
+        write(ORDER_KEY, lastOrder);
+      }
+    }
+  };
+
+  const replaceCatalog = (next) => {
+    if (!Array.isArray(next) || !next.length) return;
+    products.length = 0;
+    for (const raw of next) {
+      const id = raw.id || raw.slug;
+      if (!id) continue;
+      products.push({
+        id: String(id),
+        name: raw.name ?? "",
+        price: Number(raw.price) || 0,
+        rating: Number(raw.rating) || 0,
+        category: raw.category ?? "",
+        brand: raw.brand ?? "",
+        image: raw.image ?? "",
+        shortDescription: raw.shortDescription ?? raw.short_description ?? "",
+        description: raw.description ?? "",
+        specs: Array.isArray(raw.specs) ? raw.specs : [],
+        reviews: Array.isArray(raw.reviews) ? raw.reviews : [],
+        discountPercent:
+          raw.discountPercent != null
+            ? Number(raw.discountPercent)
+            : raw.discount_percent != null
+              ? Number(raw.discount_percent)
+              : undefined,
+      });
+    }
+    products.forEach((product, index) => {
+      product.discountPercent ??= [18, 12, 22, 15, 10, 20][index % 6];
+    });
+  };
 
   return {
     products,
@@ -668,6 +756,149 @@ const Store = (() => {
     savings,
     formatINR,
     saveLastOrder,
-    getLastOrder
+    getLastOrder,
+    getOrders,
+    getOrderById,
+    updateOrderStatus,
+    replaceCatalog,
   };
 })();
+
+(async function hydrateCatalogFromApi() {
+  if (typeof window === "undefined") return;
+  const base = window.AURASOUND_API_BASE;
+  if (base === undefined || base === null) return;
+  try {
+    const root = String(base).replace(/\/$/, "");
+    const url = `${root}/api/products`;
+    const res = await fetch(url);
+    if (!res.ok) return;
+    const data = await res.json();
+    Store.replaceCatalog(data);
+    window.dispatchEvent(new CustomEvent("catalog:updated"));
+  } catch {
+    /* keep bundled catalog */
+  }
+})();
+
+document.addEventListener("DOMContentLoaded", () => {
+  const AURASOUND_LOGIN_KEY = "aurasound_user";
+  const loginLinks = document.querySelectorAll('a[href="login.html"]');
+  
+  if (localStorage.getItem(AURASOUND_LOGIN_KEY)) {
+    loginLinks.forEach(link => {
+      if (window.location.pathname.endsWith("login.html")) return;
+      
+      link.textContent = "Logout";
+      link.addEventListener("click", (e) => {
+        e.preventDefault();
+        localStorage.removeItem(AURASOUND_LOGIN_KEY);
+        window.location.href = "login.html";
+      });
+    });
+  }
+
+  // Global 3D Parallax Mousemove Effect
+  document.body.addEventListener("mousemove", (e) => {
+    const card = e.target.closest('.glass, .product-card, .feature-card, .contact-card, .category-card');
+    if (!card) return;
+    
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    
+    // Calculate tilt (max 8 degrees)
+    const rotateX = ((y - centerY) / centerY) * -8;
+    const rotateY = ((x - centerX) / centerX) * 8;
+    
+    // Add subtle translateY for products
+    const isProduct = card.classList.contains('product-card');
+    const translateY = isProduct ? '-8px' : '0px';
+    
+    card.style.transform = `perspective(1000px) translateY(${translateY}) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+    card.style.transition = "transform 0.1s ease-out";
+  });
+
+  document.body.addEventListener("mouseout", (e) => {
+    const card = e.target.closest('.glass, .product-card, .feature-card, .contact-card, .category-card');
+    if (!card) return;
+    
+    // Reset if leaving the card entirely
+    if (!card.contains(e.relatedTarget)) {
+      card.style.transform = "";
+      card.style.transition = "transform 0.5s ease-out";
+    }
+  });
+
+  // Global Interactive Text Effect
+  const headings = document.querySelectorAll('h1, h2, h3');
+  headings.forEach(heading => {
+    // Only apply to headings with text content directly
+    if (heading.children.length > 0 && !heading.classList.contains('interactive-applied')) return;
+    
+    const text = heading.innerText;
+    heading.innerHTML = '';
+    heading.classList.add('interactive-applied');
+    
+    for(let char of text) {
+      const span = document.createElement('span');
+      span.innerText = char === ' ' ? '\u00A0' : char;
+      span.className = 'interactive-char';
+      heading.appendChild(span);
+    }
+    
+    heading.addEventListener('mousemove', (e) => {
+      const rect = heading.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      
+      const chars = heading.querySelectorAll('.interactive-char');
+      chars.forEach(char => {
+        const charRect = char.getBoundingClientRect();
+        const charX = charRect.left - rect.left + charRect.width / 2;
+        const dist = Math.abs(x - charX);
+        
+        if (dist < 80) {
+          const scale = 1 + (80 - dist) * 0.005;
+          const y = (80 - dist) * -0.15;
+          char.style.transform = `translateY(${y}px) scale(${scale})`;
+          char.style.color = 'var(--accent)';
+          char.style.textShadow = '0 10px 20px rgba(41, 217, 255, 0.4)';
+        } else {
+          char.style.transform = '';
+          char.style.color = '';
+          char.style.textShadow = '';
+        }
+      });
+    });
+    
+    heading.addEventListener('mouseleave', () => {
+      const chars = heading.querySelectorAll('.interactive-char');
+      chars.forEach(char => {
+        char.style.transform = '';
+        char.style.color = '';
+        char.style.textShadow = '';
+      });
+    });
+  });
+
+  // Global Mouse Glow Spotlight
+  document.body.addEventListener('mousemove', (e) => {
+    const cards = document.querySelectorAll('.glass, .feature-card, .contact-card, .product-card');
+    cards.forEach(card => {
+      const rect = card.getBoundingClientRect();
+      // Only calculate if near the card to save performance
+      if (
+        e.clientX >= rect.left - 200 && e.clientX <= rect.right + 200 &&
+        e.clientY >= rect.top - 200 && e.clientY <= rect.bottom + 200
+      ) {
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        card.style.setProperty('--mouse-x', `${x}px`);
+        card.style.setProperty('--mouse-y', `${y}px`);
+      }
+    });
+  });
+
+});

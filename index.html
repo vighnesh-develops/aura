@@ -1,188 +1,238 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AURASOUND | Premium Headphones</title>
-    <link rel="stylesheet" href="css/style.css" />
-  </head>
-  <body>
-    <nav class="navbar">
-      <div class="container nav-inner">
-        <a class="logo" href="index.html" aria-label="AURASOUND home">AURA<span>SOUND</span></a>
 
-        <div class="menu" aria-label="Primary navigation">
-          <a class="active" href="index.html">Home</a>
-          <a href="shop.html">Shop</a>
-          <a href="#about">About</a>
-          <a href="#contact">Contact</a>
-          <a href="login.html">Login</a>
-        </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AURASOUND | Premium Headphones</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
 
-        <div class="search">
-          <input id="globalSearch" type="text" placeholder="Search headphones..." autocomplete="off" />
-        </div>
-
-        <a class="cart-pill" href="cart.html" aria-label="Go to cart">
-          🛒 <span class="cart-count" id="cartCount">0</span>
-        </a>
+<body>
+  <div class="help-center-bar">
+    <div class="container help-bar-inner">
+      <span>Customer Service: +91 90000 12345 (9AM - 9PM IST)</span>
+      <div class="help-links">
+        <a href="track.html">Track Order</a>
+        <a href="#contact">Help Centre</a>
       </div>
-    </nav>
+    </div>
+  </div>
+  <canvas id="globalBgCanvas"></canvas>
+  <nav class="navbar">
+    <div class="container nav-inner">
+      <a class="logo" href="index.html" aria-label="AURASOUND home">AURA<span>SOUND</span></a>
 
-    <header class="container hero interactive-hero" id="interactiveHero">
-      <div class="hero-copy">
-        <p class="muted hero-kicker">Future of immersive audio</p>
-        <h1>Experience Sound Beyond Reality</h1>
-        <p>
-          Discover flagship headphones with precision acoustics, adaptive noise cancellation, and a design crafted for premium listening.
-        </p>
-
-        <div class="hero-actions">
-          <a href="shop.html" class="btn btn-primary">Shop Now</a>
-          <a href="#featuredProducts" class="btn btn-ghost">Explore Collection</a>
-          <button class="hidden" type="button" id="soundDemoBtn" aria-hidden="true" tabindex="-1">Play Sound Demo</button>
-        </div>
-
-        <div class="hero-stats" aria-label="AURASOUND highlights">
-          <div>
-            <strong data-count="45">0</strong>
-            <span>Hours Battery</span>
-          </div>
-          <div>
-            <strong data-count="34">0</strong>
-            <span>Products</span>
-          </div>
-          <div>
-            <strong data-count="98">0</strong>
-            <span>Audio Score</span>
-          </div>
-        </div>
+      <div class="menu" aria-label="Primary navigation">
+        <a class="active" href="index.html">Home</a>
+        <a href="shop.html">Shop</a>
+        <a href="orders.html">My Orders</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+        <a href="login.html">Login</a>
       </div>
 
-      <div class="scene-wrap" id="heroCanvas" aria-label="Premium headphone visual">
-        <img
-          class="hero-fallback-image"
-          src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1200&q=80"
-          alt="Premium headphone"
-        />
-        <div class="sound-widget" id="soundWidget" aria-hidden="true">
-          <span></span><span></span><span></span><span></span><span></span>
-        </div>
-        <div class="floating-badge badge-top">Adaptive ANC</div>
-        <div class="floating-badge badge-bottom">Spatial 360</div>
-      </div>
-    </header>
-
-    <section class="container reveal-on-scroll">
-      <div class="feature-grid parallax" data-speed="0.08">
-        <article class="glass feature-card">
-          <span class="feature-icon">◌</span>
-          <h3>Hybrid ANC</h3>
-          <p class="muted">Block distractions with layered active noise cancellation.</p>
-        </article>
-        <article class="glass feature-card">
-          <span class="feature-icon">◎</span>
-          <h3>Spatial Audio</h3>
-          <p class="muted">Feel multidimensional depth for music, cinema, and gaming.</p>
-        </article>
-        <article class="glass feature-card">
-          <span class="feature-icon">◇</span>
-          <h3>All-Day Comfort</h3>
-          <p class="muted">Premium lightweight build and memory foam ear cushions.</p>
-        </article>
-      </div>
-    </section>
-
-    <section class="container reveal-on-scroll" id="about">
-      <div class="section-head">
-        <p class="eyebrow">Built for premium listening</p>
-        <h2>About AURASOUND</h2>
+      <div class="search">
+        <input id="globalSearch" type="text" placeholder="Search headphones..." autocomplete="off" />
       </div>
 
-      <div class="glass about-card">
-        <p>
-          AURASOUND engineers premium headphones that merge futuristic design with precision acoustic performance.
-          Every model is tuned by audio specialists to deliver rich detail, controlled bass, and all-day comfort.
-        </p>
-        <p class="muted" style="margin-top:0.75rem;">
-          From wireless ANC travel companions to studio-grade wired monitors and esports-ready gaming gear, our mission is simple:
-          make every moment sound extraordinary.
-        </p>
+      <a class="cart-pill" href="cart.html" aria-label="Go to cart">
+        🛒 <span class="cart-count" id="cartCount">0</span>
+      </a>
+    </div>
+  </nav>
+
+  <header class="container hero interactive-hero" id="interactiveHero">
+    <div class="hero-copy">
+      <p class="muted hero-kicker">Future of immersive audio</p>
+      <h1>Experience Sound Beyond Reality</h1>
+      <p>
+        Discover flagship headphones with precision acoustics, adaptive noise cancellation, and a design crafted for
+        premium listening.
+      </p>
+
+      <div class="hero-actions">
+        <a href="shop.html" class="btn btn-primary">Shop Now</a>
+        <a href="#featuredProducts" class="btn btn-ghost">Explore Collection</a>
+        <button class="hidden" type="button" id="soundDemoBtn" aria-hidden="true" tabindex="-1">Play Sound Demo</button>
       </div>
 
-      <div class="experience-panel">
+      <div class="hero-stats" aria-label="AURASOUND highlights">
         <div>
-          <p class="muted">Interactive pick</p>
-          <h2 id="experienceTitle">Wireless ANC</h2>
-          <p class="muted" id="experienceText">Move through sound modes and jump straight into the collection that matches your listening style.</p>
+          <strong data-count="45">0</strong>
+          <span>Hours Battery</span>
         </div>
-        <div class="mode-tabs" id="modeTabs">
-          <button class="active" type="button" data-mode="Wireless ANC" data-text="Clean travel sound with adaptive cancellation and long battery life.">Wireless</button>
-          <button type="button" data-mode="Studio Detail" data-text="Reference wired headphones built for editing, mixing, and deep listening.">Studio</button>
-          <button type="button" data-mode="Gaming Focus" data-text="Low-latency cues, immersive surround, and clear team-chat microphones.">Gaming</button>
+        <div>
+          <strong data-count="34">0</strong>
+          <span>Products</span>
+        </div>
+        <div>
+          <strong data-count="98">0</strong>
+          <span>Audio Score</span>
         </div>
       </div>
+    </div>
 
-      <div class="section-head featured-head">
-        <p class="eyebrow">Curated picks</p>
-        <h2>Featured Products</h2>
+    <div class="scene-wrap" id="heroCanvas" aria-label="Premium headphone visual">
+      <img class="hero-fallback-image"
+        src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1200&q=80"
+        alt="Premium headphone" />
+      <div class="sound-widget" id="soundWidget" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span>
       </div>
-      <div id="featuredProducts" class="product-grid"></div>
-    </section>
+      <div class="floating-badge badge-top">Adaptive ANC</div>
+      <div class="floating-badge badge-bottom">Spatial 360</div>
+    </div>
+  </header>
 
-    <section class="container glass contact-card" id="contact">
+  <section class="container reveal-on-scroll">
+    <div class="feature-grid parallax" data-speed="0.08">
+      <article class="glass feature-card">
+        <span class="feature-icon">◌</span>
+        <h3>Hybrid ANC</h3>
+        <p class="muted">Block distractions with layered active noise cancellation.</p>
+      </article>
+      <article class="glass feature-card">
+        <span class="feature-icon">◎</span>
+        <h3>Spatial Audio</h3>
+        <p class="muted">Feel multidimensional depth for music, cinema, and gaming.</p>
+      </article>
+      <article class="glass feature-card">
+        <span class="feature-icon">◇</span>
+        <h3>All-Day Comfort</h3>
+        <p class="muted">Premium lightweight build and memory foam ear cushions.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="container reveal-on-scroll" id="about">
+    <div class="section-head">
+      <p class="eyebrow">Built for premium listening</p>
+      <h2>About AURASOUND</h2>
+    </div>
+
+    <div class="glass about-card">
+      <p>
+        AURASOUND engineers premium headphones that merge futuristic design with precision acoustic performance.
+        Every model is tuned by audio specialists to deliver rich detail, controlled bass, and all-day comfort.
+      </p>
+      <p class="muted" style="margin-top:0.75rem;">
+        From wireless ANC travel companions to studio-grade wired monitors and esports-ready gaming gear, our mission is
+        simple:
+        make every moment sound extraordinary.
+      </p>
+    </div>
+
+    <div class="experience-panel">
       <div>
-        <p class="eyebrow">Need buying help?</p>
-        <h3>Contact AURASOUND</h3>
-        <p class="muted">Our audio consultants are available 7 days a week.</p>
+        <p class="muted">Interactive pick</p>
+        <h2 id="experienceTitle">Wireless ANC</h2>
+        <p class="muted" id="experienceText">Move through sound modes and jump straight into the collection that matches
+          your listening style.</p>
       </div>
-      <div class="contact-grid">
-        <p><strong>Email:</strong> support@aurasound.com</p>
-        <p><strong>Phone:</strong> +91 90000 12345</p>
-        <p><strong>WhatsApp:</strong> +91 90000 67890</p>
-        <p><strong>Support Hours:</strong> 9:00 AM - 9:00 PM (IST)</p>
-        <p><strong>HQ:</strong> Bengaluru, India</p>
+      <div class="mode-tabs" id="modeTabs">
+        <button class="active" type="button" data-mode="Wireless ANC"
+          data-text="Clean travel sound with adaptive cancellation and long battery life.">Wireless</button>
+        <button type="button" data-mode="Studio Detail"
+          data-text="Reference wired headphones built for editing, mixing, and deep listening.">Studio</button>
+        <button type="button" data-mode="Gaming Focus"
+          data-text="Low-latency cues, immersive surround, and clear team-chat microphones.">Gaming</button>
       </div>
+    </div>
+
+    <div class="section-head featured-head">
+      <p class="eyebrow">Curated picks</p>
+      <h2>Featured Products</h2>
+    </div>
+    <div id="featuredProducts" class="product-grid"></div>
+    <div class="featured-actions">
+      <a class="btn btn-primary" href="shop.html">View All Products</a>
+    </div>
+  </section>
+
+  <section class="container glass contact-card" id="contact">
+    <div>
+      <p class="eyebrow">Need buying help?</p>
+      <h3>Contact AURASOUND</h3>
+      <p class="muted">Our audio consultants are available 7 days a week.</p>
+    </div>
+    <div class="contact-grid">
+      <p><strong>Email:</strong> support@aurasound.com</p>
+      <p><strong>Phone:</strong> +91 90000 12345</p>
+      <p><strong>WhatsApp:</strong> +91 87670 39193</p>
+      <p><strong>Support Hours:</strong> 9:00 AM - 9:00 PM (IST)</p>
+      <p><strong>HQ:</strong> Ratnagiri, India</p>
+    </div>
+    <form id="contactForm" class="contact-form-grid"
+      style="margin-top:1.25rem;display:grid;gap:0.65rem;max-width:520px;">
+      <label class="muted" style="display:flex;flex-direction:column;gap:0.35rem;font-size:0.9rem;">
+        Name
+        <input name="name" required type="text" autocomplete="name"
+          style="padding:0.5rem 0.65rem;border-radius:8px;border:1px solid rgba(41,217,255,0.25);background:rgba(0,0,0,0.35);color:inherit;" />
+      </label>
+      <label class="muted" style="display:flex;flex-direction:column;gap:0.35rem;font-size:0.9rem;">
+        Email
+        <input name="email" required type="email" autocomplete="email"
+          style="padding:0.5rem 0.65rem;border-radius:8px;border:1px solid rgba(41,217,255,0.25);background:rgba(0,0,0,0.35);color:inherit;" />
+      </label>
+      <label class="muted" style="display:flex;flex-direction:column;gap:0.35rem;font-size:0.9rem;">
+        Subject
+        <input name="subject" required type="text"
+          style="padding:0.5rem 0.65rem;border-radius:8px;border:1px solid rgba(41,217,255,0.25);background:rgba(0,0,0,0.35);color:inherit;" />
+      </label>
+      <label class="muted" style="display:flex;flex-direction:column;gap:0.35rem;font-size:0.9rem;">
+        Message
+        <textarea name="message" required rows="4"
+          style="padding:0.5rem 0.65rem;border-radius:8px;border:1px solid rgba(41,217,255,0.25);background:rgba(0,0,0,0.35);color:inherit;font:inherit;"></textarea>
+      </label>
+      <button class="btn btn-primary" type="submit" style="justify-self:start;">Send message</button>
+    </form>
+    <p id="contactFormStatus" class="muted" style="margin-top:0.5rem;"></p>
+  </section>
+
+  <footer class="footer">
+    <p>&copy; 2026 AURASOUND. Crafted for audiophiles.</p>
+  </footer>
+
+  <aside class="ai-assistant" id="aiAssistant" aria-label="AURASOUND shopping assistant">
+    <button class="assistant-toggle" id="assistantToggle" type="button" aria-label="Open shopping assistant">
+      AI
+    </button>
+    <section class="assistant-panel hidden" id="assistantPanel">
+      <div class="assistant-head">
+        <div>
+          <strong>AURASOUND Assistant</strong>
+          <p class="muted">Ask which headphone fits you best.</p>
+        </div>
+        <button class="assistant-close" id="assistantClose" type="button" aria-label="Close assistant">x</button>
+      </div>
+      <div class="assistant-messages" id="assistantMessages">
+        <div class="assistant-message bot">
+          Tell me your budget, use case, and wired/wireless preference. I can recommend exact products from this store.
+        </div>
+      </div>
+      <div class="assistant-chips">
+        <button type="button" data-prompt="Suggest the best headphones under Rs 6000.">Under Rs 6000</button>
+        <button type="button" data-prompt="Which gaming headset should I buy?">Gaming</button>
+        <button type="button" data-prompt="Which airbuds should I buy for calls and music?">Airbuds</button>
+        <button type="button" data-prompt="I need wireless headphones for travel with ANC.">Travel ANC</button>
+      </div>
+      <form class="assistant-form" id="assistantForm">
+        <input id="assistantInput" type="text" placeholder="Ask for a product suggestion..." autocomplete="off" />
+        <button class="btn btn-primary" type="submit">Send</button>
+      </form>
     </section>
+  </aside>
 
-    <footer class="footer">
-      <p>&copy; 2026 AURASOUND. Crafted for audiophiles.</p>
-    </footer>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.min.js"></script>
+  <script src="js/api-config.js"></script>
+  <script src="js/products.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/assistant.js"></script>
+  <script src="js/bg.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+</body>
 
-    <aside class="ai-assistant" id="aiAssistant" aria-label="AURASOUND shopping assistant">
-      <button class="assistant-toggle" id="assistantToggle" type="button" aria-label="Open shopping assistant">
-        AI
-      </button>
-      <section class="assistant-panel hidden" id="assistantPanel">
-        <div class="assistant-head">
-          <div>
-            <strong>AURASOUND Assistant</strong>
-            <p class="muted">Ask which headphone fits you best.</p>
-          </div>
-          <button class="assistant-close" id="assistantClose" type="button" aria-label="Close assistant">x</button>
-        </div>
-        <div class="assistant-messages" id="assistantMessages">
-          <div class="assistant-message bot">
-            Tell me your budget, use case, and wired/wireless preference. I can recommend exact products from this store.
-          </div>
-        </div>
-        <div class="assistant-chips">
-          <button type="button" data-prompt="Suggest the best headphones under Rs 6000.">Under Rs 6000</button>
-          <button type="button" data-prompt="Which gaming headset should I buy?">Gaming</button>
-          <button type="button" data-prompt="Which airbuds should I buy for calls and music?">Airbuds</button>
-          <button type="button" data-prompt="I need wireless headphones for travel with ANC.">Travel ANC</button>
-        </div>
-        <form class="assistant-form" id="assistantForm">
-          <input id="assistantInput" type="text" placeholder="Ask for a product suggestion..." autocomplete="off" />
-          <button class="btn btn-primary" type="submit">Send</button>
-        </form>
-      </section>
-    </aside>
-
-    <script src="https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.min.js"></script>
-    <script src="js/products.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/main.js"></script>
-    <script src="js/assistant.js"></script>
-  </body>
 </html>

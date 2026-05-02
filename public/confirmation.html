@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Order Confirmed | AURASOUND</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <canvas id="globalBgCanvas"></canvas>
+    <main class="container tick-wrap">
+      <div class="tick">✔</div>
+      <h1>Thank You for Your Order</h1>
+      <p class="muted">Your premium sound experience is on the way.</p>
+      <section class="glass" id="orderSummary"></section>
+      <button class="btn" type="button" id="downloadBillBtn">Download PDF Bill</button>
+      <a class="btn" id="trackOrderLink" href="track.html">Track Order</a>
+      <a class="btn" href="orders.html">My Orders</a>
+      <a class="btn btn-primary" href="shop.html">Continue Shopping</a>
+    </main>
+
+    <script src="js/products.js"></script>
+    <script src="js/confirmation.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.min.js"></script>
+    <script src="js/bg.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  </body>
+</html>

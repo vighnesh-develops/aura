@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Checkout | AURASOUND</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <canvas id="globalBgCanvas"></canvas>
+    <nav class="navbar">
+      <div class="container nav-inner">
+        <a class="logo" href="index.html">AURA<span>SOUND</span></a>
+        <div class="menu">
+          <a href="index.html">Home</a>
+          <a href="shop.html">Shop</a>
+          <a href="orders.html">My Orders</a>
+          <a href="index.html#about">About</a>
+          <a href="index.html#contact">Contact</a>
+        </div>
+        <div class="search">
+          <input id="globalSearch" type="text" placeholder="Search headphones..." />
+        </div>
+        <a class="cart-pill" href="cart.html" aria-label="Go to cart">
+          🛒 <span class="cart-count" id="cartCount">0</span>
+        </a>
+      </div>
+    </nav>
+
+    <main class="container">
+      <div class="section-head">
+        <h2>Checkout</h2>
+      </div>
+      <section class="glass">
+        <form class="checkout-form" id="checkoutForm">
+          <input id="fullName" type="text" placeholder="Full Name" required />
+          <input id="address" type="text" placeholder="Address" required />
+          <input id="phone" type="tel" placeholder="Phone Number" required />
+          <div class="payment-options">
+            <label><input type="radio" name="payment" value="UPI" required /> UPI</label>
+            <label><input type="radio" name="payment" value="PayPal QR" /> PayPal QR</label>
+            <label><input type="radio" name="payment" value="Credit / Debit Card" /> Credit / Debit Card</label>
+            <label><input type="radio" name="payment" value="Net Banking" /> Net Banking</label>
+            <label><input type="radio" name="payment" value="Cash on Delivery" /> Cash on Delivery (COD)</label>
+          </div>
+          <p class="muted">Order Total: <span id="checkoutTotal"></span></p>
+          <button class="btn btn-primary" type="button" id="continueOrderBtn">Continue Order</button>
+
+          <div class="payment-qr-panel hidden" id="paymentQrPanel">
+            <div>
+              <h3 id="qrTitle">Pay with QR</h3>
+              <p class="muted" id="qrHelp">Scan the QR, approve your payment, then place the order.</p>
+              <label class="payment-edit">
+                Payment UPI ID
+                <input id="upiId" type="text" value="ms8948748@okicici" />
+              </label>
+              <button class="btn" type="button" id="updateQrBtn">Update QR</button>
+              <label class="approval-check">
+                <input type="checkbox" id="paymentApproved" />
+                I have manually approved/completed this QR payment
+              </label>
+            </div>
+            <img id="paymentQrImage" alt="Online payment QR code" />
+          </div>
+
+          <p class="muted hidden" id="approvalMessage">Approve the QR payment manually to place this order.</p>
+          <button class="btn btn-primary hidden" type="submit" id="placeOrderBtn" disabled>Place Order</button>
+        </form>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>&copy; 2026 AURASOUND.</p>
+    </footer>
+
+    <script src="js/products.js"></script>
+    <script src="js/checkout.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.min.js"></script>
+    <script src="js/bg.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  </body>
+</html>

@@ -15,6 +15,27 @@ const paymentQrImage = document.getElementById("paymentQrImage");
 
 let selectedPayment = "";
 
+const syncOrderToServer = async (order) => {
+  const base = window.AURASOUND_API_BASE;
+  if (base === undefined || base === null) return;
+  try {
+    const root = String(base).replace(/\/$/, "");
+    await fetch(`${root}/api/orders`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(order),
+    });
+  } catch {
+    /* offline API — local order still saved */
+  }
+};
+
+const createOrderId = () => {
+  const dateCode = new Date().toISOString().slice(2, 10).replaceAll("-", "");
+  const randomCode = Math.random().toString(36).slice(2, 7).toUpperCase();
+  return `AS-${dateCode}-${randomCode}`;
+};
+
 const updateCartBadge = () => {
   cartCountNode.textContent = Store.cartCount();
 };
@@ -101,18 +122,34 @@ const setupCheckout = () => {
     updatePlaceOrderState();
     if (placeOrderBtn.disabled) return;
 
+    const orderItems = cart.map((item) => {
+      const product = Store.getProductById(item.id);
+      const unitPrice = product ? Store.discountedPrice(product) : 0;
+      return {
+        ...item,
+        slug: item.id,
+        name: product?.name || item.id,
+        unitPrice,
+      };
+    });
+
     const order = {
+      id: createOrderId(),
       customer: document.getElementById("fullName").value.trim(),
       address: document.getElementById("address").value.trim(),
       phone: document.getElementById("phone").value.trim(),
       payment: checkoutForm.querySelector('input[name="payment"]:checked').value,
       paymentUpiId: upiIdInput.value.trim(),
       paymentApproved: paymentApproved.checked,
-      items: cart.map((item) => ({ ...item })),
+      items: orderItems,
       total: Store.cartTotal(),
+      status: "Order Placed",
+      eta: "3-5 business days",
+      placedAt: new Date().toISOString(),
       date: new Date().toLocaleString()
     };
     Store.saveLastOrder(order);
+    void syncOrderToServer(order);
     Store.clearCart();
     window.location.href = "confirmation.html";
   });

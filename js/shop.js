@@ -7,6 +7,7 @@ const categoryFilter = document.getElementById("categoryFilter");
 const brandFilter = document.getElementById("brandFilter");
 const ratingFilter = document.getElementById("ratingFilter");
 const resultsCount = document.getElementById("resultsCount");
+const categoryCards = document.querySelectorAll("[data-category-jump]");
 const placeholderImage = "https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&w=900&q=80";
 
 const updateCartBadge = () => {
@@ -21,12 +22,32 @@ const setupTopSearch = () => {
 };
 
 const populateBrands = () => {
-  const brands = [...new Set(Store.products.map((item) => item.brand))];
+  while (brandFilter.options.length > 1) {
+    brandFilter.remove(1);
+  }
+  const brands = [...new Set(Store.products.map((item) => item.brand))].sort();
   brands.forEach((brand) => {
     const option = document.createElement("option");
     option.value = brand;
     option.textContent = brand;
     brandFilter.appendChild(option);
+  });
+};
+
+const syncCategoryCards = () => {
+  categoryCards.forEach((card) => {
+    card.classList.toggle("active", card.dataset.categoryJump === categoryFilter.value);
+  });
+};
+
+const setupCategorySections = () => {
+  categoryCards.forEach((card) => {
+    card.addEventListener("click", () => {
+      categoryFilter.value = card.dataset.categoryJump;
+      searchInput.value = "";
+      render();
+      grid.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   });
 };
 
@@ -52,6 +73,7 @@ const render = () => {
   priceValue.textContent = Store.formatINR(Number(priceRange.value));
   const list = filteredProducts();
   resultsCount.textContent = list.length;
+  syncCategoryCards();
 
   grid.innerHTML = list
     .map(
@@ -71,7 +93,17 @@ const render = () => {
             <span class="old-price">${Store.formatINR(product.price)}</span>
             <button class="btn btn-primary" data-add="${product.id}">Add to Cart</button>
           </div>
-          <a class="muted" href="product.html?id=${product.id}">View details</a>
+          <button class="feature-bar" type="button" data-features="${product.id}">
+            View Features
+            <span>+</span>
+          </button>
+          <div class="feature-preview hidden" id="features-${product.id}">
+            <p><strong>Best for:</strong> ${product.category}</p>
+            <ul>
+              ${product.specs.slice(0, 4).map((spec) => `<li>${spec}</li>`).join("")}
+            </ul>
+            <a href="product.html?id=${product.id}">Open full details</a>
+          </div>
         </div>
       </article>
     `
@@ -82,6 +114,16 @@ const render = () => {
     btn.addEventListener("click", () => {
       Store.addToCart(btn.dataset.add, 1);
       updateCartBadge();
+    });
+  });
+
+  document.querySelectorAll("[data-features]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const panel = document.getElementById(`features-${btn.dataset.features}`);
+      const isOpen = !panel.classList.contains("hidden");
+      panel.classList.toggle("hidden", isOpen);
+      btn.classList.toggle("active", !isOpen);
+      btn.querySelector("span").textContent = isOpen ? "+" : "-";
     });
   });
 };
@@ -169,7 +211,12 @@ const initShopScene = () => {
 
 populateBrands();
 setupTopSearch();
+setupCategorySections();
 updateCartBadge();
 window.addEventListener("cart:updated", updateCartBadge);
+window.addEventListener("catalog:updated", () => {
+  populateBrands();
+  render();
+});
 render();
 initShopScene();

@@ -18,7 +18,14 @@ const setupSearchRedirect = () => {
 const renderFeatured = () => {
   const featured = document.getElementById("featuredProducts");
   if (!featured) return;
-  const items = Store.products.filter((product) => product.id !== "test-rs1").slice(0, 4);
+  const featuredCategories = ["Wireless", "Airbuds", "Wired", "Gaming", "Headset"];
+  const items = Store.products
+    .filter((product) => product.id !== "test-rs1")
+    .sort((a, b) => {
+      const categoryDiff = featuredCategories.indexOf(a.category) - featuredCategories.indexOf(b.category);
+      return categoryDiff || b.rating - a.rating;
+    })
+    .slice(0, 12);
   featured.innerHTML = items
     .map(
       (product) => `
@@ -143,46 +150,126 @@ const initHeroScene = () => {
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(50, mount.clientWidth / mount.clientHeight, 0.1, 1000);
-  camera.position.set(0, 0.2, 5);
+  camera.position.set(0, 0, 6);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(mount.clientWidth, mount.clientHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   mount.appendChild(renderer.domElement);
 
   const group = new THREE.Group();
-  const headBand = new THREE.TorusGeometry(1.2, 0.14, 16, 100, Math.PI);
-  const material = new THREE.MeshStandardMaterial({ color: 0x4bd9ff, metalness: 0.8, roughness: 0.2 });
-  const bandMesh = new THREE.Mesh(headBand, material);
+  
+  // Premium glass/metal headband
+  const headBand = new THREE.TorusGeometry(1.4, 0.18, 32, 100, Math.PI);
+  const bandMat = new THREE.MeshPhysicalMaterial({ 
+    color: 0x111111, 
+    metalness: 0.9, 
+    roughness: 0.1,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.1
+  });
+  const bandMesh = new THREE.Mesh(headBand, bandMat);
   bandMesh.rotation.z = Math.PI;
   group.add(bandMesh);
 
-  const cupGeo = new THREE.CylinderGeometry(0.48, 0.48, 0.38, 32);
-  const cupMat = new THREE.MeshStandardMaterial({ color: 0x8b5cf6, metalness: 0.6, roughness: 0.25 });
+  // High-tech ear cups
+  const cupGeo = new THREE.CylinderGeometry(0.6, 0.6, 0.4, 32);
+  const cupMat = new THREE.MeshStandardMaterial({ 
+    color: 0x8b5cf6, 
+    metalness: 0.3, 
+    roughness: 0.4,
+    emissive: 0x2a1b4d,
+    emissiveIntensity: 0.5
+  });
   const leftCup = new THREE.Mesh(cupGeo, cupMat);
-  leftCup.position.set(-1.08, -0.7, 0);
+  leftCup.position.set(-1.4, -0.8, 0);
   leftCup.rotation.z = Math.PI / 2;
+  
   const rightCup = leftCup.clone();
-  rightCup.position.x = 1.08;
+  rightCup.position.x = 1.4;
   group.add(leftCup, rightCup);
+
+  // Glowing inner drivers
+  const driverGeo = new THREE.SphereGeometry(0.4, 32, 32);
+  const driverMat = new THREE.MeshStandardMaterial({
+    color: 0x29d9ff,
+    emissive: 0x29d9ff,
+    emissiveIntensity: 1.2,
+    wireframe: true
+  });
+  const leftDriver = new THREE.Mesh(driverGeo, driverMat);
+  leftDriver.position.set(-1.2, -0.8, 0);
+  const rightDriver = leftDriver.clone();
+  rightDriver.position.x = 1.2;
+  group.add(leftDriver, rightDriver);
+
+  // Floating ambient sound particles
+  const particles = new THREE.Group();
+  for(let i=0; i<60; i++) {
+    const pGeo = new THREE.SphereGeometry(0.02, 8, 8);
+    const pMat = new THREE.MeshBasicMaterial({ color: i % 2 === 0 ? 0x29d9ff : 0x8b5cf6 });
+    const p = new THREE.Mesh(pGeo, pMat);
+    p.position.set((Math.random() - 0.5) * 8, (Math.random() - 0.5) * 8, (Math.random() - 0.5) * 5 - 2);
+    particles.add(p);
+  }
+  scene.add(particles);
 
   scene.add(group);
 
-  const lightA = new THREE.PointLight(0x29d9ff, 35, 100);
-  lightA.position.set(2, 4, 5);
-  const lightB = new THREE.PointLight(0x8b5cf6, 25, 100);
-  lightB.position.set(-3, -2, 4);
-  scene.add(lightA, lightB, new THREE.AmbientLight(0xffffff, 1.2));
+  // Dynamic Lighting
+  const lightA = new THREE.PointLight(0x29d9ff, 50, 100);
+  lightA.position.set(3, 4, 5);
+  const lightB = new THREE.PointLight(0x8b5cf6, 40, 100);
+  lightB.position.set(-4, -3, 4);
+  scene.add(lightA, lightB, new THREE.AmbientLight(0xffffff, 0.8));
 
   let pointerX = 0;
+  let pointerY = 0;
   mount.addEventListener("mousemove", (event) => {
     const rect = mount.getBoundingClientRect();
-    pointerX = ((event.clientX - rect.left) / rect.width - 0.5) * 0.8;
+    pointerX = ((event.clientX - rect.left) / rect.width - 0.5) * 1.5;
+    pointerY = ((event.clientY - rect.top) / rect.height - 0.5) * 1.5;
   });
+
+  // Entry Animation Setup
+  group.scale.set(0.01, 0.01, 0.01);
+  group.rotation.x = Math.PI;
+  let introProgress = 0;
+
+  const clock = new THREE.Clock();
 
   const animate = () => {
     requestAnimationFrame(animate);
-    group.rotation.y += 0.007;
-    group.rotation.x = pointerX * 0.35;
+    const dt = clock.getDelta();
+    const time = clock.getElapsedTime();
+
+    // Intro Animation
+    if (introProgress < 1) {
+      introProgress += dt * 0.8;
+      const ease = 1 - Math.pow(1 - introProgress, 4); // easeOutQuart
+      const s = Math.min(ease, 1);
+      group.scale.set(s, s, s);
+      group.rotation.x = (1 - s) * Math.PI;
+    }
+
+    // Hover floating effect
+    group.position.y = Math.sin(time * 2) * 0.15;
+    
+    // Drivers pulsing
+    const pulse = 1 + Math.sin(time * 8) * 0.05;
+    leftDriver.scale.set(pulse, pulse, pulse);
+    rightDriver.scale.set(pulse, pulse, pulse);
+
+    // Smooth pointer tracking
+    group.rotation.y += (pointerX * 0.5 + time * 0.2 - group.rotation.y) * 0.05;
+    group.rotation.x += (pointerY * 0.5 - group.rotation.x) * 0.05;
+
+    // Particles moving
+    particles.rotation.y = time * 0.05;
+    particles.children.forEach((p, i) => {
+      p.position.y += Math.sin(time * 3 + i) * 0.01;
+    });
+
     renderer.render(scene, camera);
   };
   animate();
@@ -194,9 +281,46 @@ const initHeroScene = () => {
   });
 };
 
+const setupContactForm = () => {
+  const form = document.getElementById("contactForm");
+  const status = document.getElementById("contactFormStatus");
+  if (!form || !status) return;
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    status.textContent = "";
+    const base = window.AURASOUND_API_BASE;
+    if (base === undefined || base === null) {
+      status.textContent = "API base not configured.";
+      return;
+    }
+    const fd = new FormData(form);
+    const payload = {
+      name: fd.get("name"),
+      email: fd.get("email"),
+      subject: fd.get("subject"),
+      message: fd.get("message"),
+    };
+    try {
+      const root = String(base).replace(/\/$/, "");
+      const res = await fetch(`${root}/api/contact`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error("failed");
+      status.textContent = "Thanks — we received your message.";
+      form.reset();
+    } catch {
+      status.textContent = "Could not send right now. Please email support@aurasound.com.";
+    }
+  });
+};
+
 updateCartBadge();
 window.addEventListener("cart:updated", updateCartBadge);
+window.addEventListener("catalog:updated", renderFeatured);
 setupSearchRedirect();
+setupContactForm();
 renderFeatured();
 setupParallax();
 setupHeroInteraction();

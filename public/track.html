@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Track Order | AURASOUND</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <canvas id="globalBgCanvas"></canvas>
+    <nav class="navbar">
+      <div class="container nav-inner">
+        <a class="logo" href="index.html">AURA<span>SOUND</span></a>
+        <div class="menu">
+          <a href="index.html">Home</a>
+          <a href="shop.html">Shop</a>
+          <a class="active" href="track.html">Track Order</a>
+          <a href="index.html#contact">Contact</a>
+        </div>
+        <div class="search">
+          <input id="globalSearch" type="text" placeholder="Search headphones..." />
+        </div>
+        <a class="cart-pill" href="cart.html" aria-label="Go to cart">
+          Cart <span class="cart-count" id="cartCount">0</span>
+        </a>
+      </div>
+    </nav>
+
+    <main class="container">
+      <div class="section-head">
+        <h2>Track Your Order</h2>
+      </div>
+
+      <section class="glass track-search">
+        <div>
+          <h3>Enter Order ID</h3>
+          <p class="muted">Use the order ID shown after checkout, for example AS-260502-ABCDE.</p>
+        </div>
+        <form id="trackForm" class="track-form">
+          <input id="trackOrderId" type="text" placeholder="Order ID" required />
+          <button class="btn btn-primary" type="submit">Track</button>
+        </form>
+      </section>
+
+      <section class="glass hidden" id="trackingResult"></section>
+    </main>
+
+    <footer class="footer">
+      <p>&copy; 2026 AURASOUND.</p>
+    </footer>
+
+    <script src="js/products.js"></script>
+    <script src="js/track.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.min.js"></script>
+    <script src="js/bg.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  </body>
+</html>

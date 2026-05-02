@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Orders | AURASOUND Admin</title>
+    <link rel="stylesheet" href="/admin/admin.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">AURA<span style="color: var(--accent)">ADMIN</span></div>
+        <nav>
+          <a href="/admin/dashboard.html">Dashboard</a>
+          <a href="/admin/users.html">Users</a>
+          <a href="/admin/products.html">Products</a>
+          <a class="active" href="/admin/orders.html">Orders</a>
+          <a href="/admin/messages.html">Messages</a>
+          <a href="#" id="logoutLink">Logout</a>
+        </nav>
+      </aside>
+      <main>
+        <h1>Orders</h1>
+        <p style="color: var(--muted); margin-top: 0">Submitted from checkout when the API is reachable.</p>
+        <div id="list"></div>
+      </main>
+    </div>
+    <script src="/admin/admin-shared.js"></script>
+    <script>
+      requireAdminSession().then(async (user) => {
+        if (!user) return;
+        document.getElementById("logoutLink").addEventListener("click", (e) => {
+          e.preventDefault();
+          logout();
+        });
+        const orders = await adminApi("/admin/api/orders");
+        const host = document.getElementById("list");
+        if (!orders.length) {
+          host.innerHTML = "<p style=color:var(--muted)>No orders yet.</p>";
+          return;
+        }
+        host.innerHTML = orders
+          .map((o) => {
+            const lines = (o.items || [])
+              .map(
+                (it) =>
+                  `${escapeHtml(it.product_slug)} × ${it.quantity} @ ₹${it.unit_price} → ₹${it.line_total}`
+              )
+              .join("<br/>");
+            return `<div class="table-wrap" style="margin-bottom:1rem">
+              <table>
+                <tr><th>Order</th><td>${escapeHtml(o.public_id)}</td></tr>
+                <tr><th>Customer</th><td>${escapeHtml(o.customer_name)}</td></tr>
+                <tr><th>Phone</th><td>${escapeHtml(o.phone || "")}</td></tr>
+                <tr><th>Total</th><td>₹${o.total}</td></tr>
+                <tr><th>Status</th><td>${escapeHtml(o.status)}</td></tr>
+                <tr><th>Placed</th><td>${escapeHtml(o.placed_at)}</td></tr>
+                <tr><th>Items</th><td>${lines || "—"}</td></tr>
+              </table>
+            </div>`;
+          })
+          .join("");
+      });
+
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+    </script>
+  </body>
+</html>

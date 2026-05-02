@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Products | AURASOUND Admin</title>
+    <link rel="stylesheet" href="/admin/admin.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">AURA<span style="color: var(--accent)">ADMIN</span></div>
+        <nav>
+          <a href="/admin/dashboard.html">Dashboard</a>
+          <a href="/admin/users.html">Users</a>
+          <a class="active" href="/admin/products.html">Products</a>
+          <a href="/admin/orders.html">Orders</a>
+          <a href="/admin/messages.html">Messages</a>
+          <a href="#" id="logoutLink">Logout</a>
+        </nav>
+      </aside>
+      <main>
+        <h1>Products</h1>
+        <div class="toolbar">
+          <button class="primary" type="button" id="btnNew">Add product</button>
+          <button type="button" id="btnReload">Reload</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Slug</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Category</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+
+        <section id="editor" class="table-wrap" style="margin-top: 1.25rem; padding: 1rem; display: none">
+          <h2 style="margin-top: 0; font-size: 1.05rem" id="editorTitle">Edit product</h2>
+          <form id="productForm" class="form-grid" style="max-width: 640px">
+            <label>
+              Slug (product id)
+              <input name="slug" id="fSlug" required />
+            </label>
+            <label>
+              Name
+              <input name="name" id="fName" required />
+            </label>
+            <label>
+              Price (INR)
+              <input name="price" id="fPrice" type="number" step="1" required />
+            </label>
+            <label>
+              Rating
+              <input name="rating" id="fRating" type="number" step="0.1" />
+            </label>
+            <label>
+              Category
+              <input name="category" id="fCategory" />
+            </label>
+            <label>
+              Brand
+              <input name="brand" id="fBrand" />
+            </label>
+            <label>
+              Image URL
+              <input name="image" id="fImage" />
+            </label>
+            <label>
+              Short description
+              <textarea name="shortDescription" id="fShort"></textarea>
+            </label>
+            <label>
+              Description
+              <textarea name="description" id="fDesc"></textarea>
+            </label>
+            <label>
+              Discount %
+              <input name="discountPercent" id="fDisc" type="number" step="1" />
+            </label>
+            <label>
+              Specs JSON (array of strings)
+              <textarea name="specsJson" id="fSpecs"></textarea>
+            </label>
+            <label>
+              Reviews JSON (array of {user,text})
+              <textarea name="reviewsJson" id="fReviews"></textarea>
+            </label>
+            <div style="display: flex; gap: 0.5rem">
+              <button class="primary" type="submit">Save</button>
+              <button type="button" id="btnCancel">Cancel</button>
+            </div>
+            <p id="formErr" class="error"></p>
+          </form>
+        </section>
+      </main>
+    </div>
+    <script src="/admin/admin-shared.js"></script>
+    <script>
+      let editingSlug = null;
+
+      requireAdminSession().then(async (user) => {
+        if (!user) return;
+        document.getElementById("logoutLink").addEventListener("click", (e) => {
+          e.preventDefault();
+          logout();
+        });
+        document.getElementById("btnReload").addEventListener("click", loadTable);
+        document.getElementById("btnNew").addEventListener("click", () => openEditor(null));
+        document.getElementById("btnCancel").addEventListener("click", closeEditor);
+        document.getElementById("productForm").addEventListener("submit", saveProduct);
+        await loadTable();
+      });
+
+      async function loadTable() {
+        const products = await adminApi("/admin/api/products");
+        document.getElementById("tbody").innerHTML = products
+          .map(
+            (p) => `
+          <tr>
+            <td>${escapeHtml(p.id)}</td>
+            <td>${escapeHtml(p.name)}</td>
+            <td>${p.price}</td>
+            <td>${escapeHtml(p.category)}</td>
+            <td>
+              <button type="button" data-edit="${escapeHtml(p.id)}">Edit</button>
+              <button type="button" class="danger" data-del="${escapeHtml(p.id)}">Delete</button>
+            </td>
+          </tr>`
+          )
+          .join("");
+        document.querySelectorAll("button[data-edit]").forEach((b) =>
+          b.addEventListener("click", () => openEditor(b.getAttribute("data-edit")))
+        );
+        document.querySelectorAll("button[data-del]").forEach((b) =>
+          b.addEventListener("click", () => removeProduct(b.getAttribute("data-del")))
+        );
+      }
+
+      function closeEditor() {
+        editingSlug = null;
+        document.getElementById("editor").style.display = "none";
+        document.getElementById("formErr").textContent = "";
+      }
+
+      async function openEditor(slug) {
+        editingSlug = slug;
+        const editor = document.getElementById("editor");
+        editor.style.display = "block";
+        document.getElementById("editorTitle").textContent = slug ? "Edit product" : "New product";
+        document.getElementById("fSlug").disabled = Boolean(slug);
+        document.getElementById("formErr").textContent = "";
+
+        if (!slug) {
+          document.getElementById("productForm").reset();
+          document.getElementById("fSlug").value = "";
+          document.getElementById("fSpecs").value = "[]";
+          document.getElementById("fReviews").value = "[]";
+          document.getElementById("fRating").value = "4.5";
+          document.getElementById("fDisc").value = "0";
+          return;
+        }
+
+        const p = await adminApi(`/api/products/${encodeURIComponent(slug)}`);
+        document.getElementById("fSlug").value = p.id;
+        document.getElementById("fName").value = p.name;
+        document.getElementById("fPrice").value = p.price;
+        document.getElementById("fRating").value = p.rating;
+        document.getElementById("fCategory").value = p.category;
+        document.getElementById("fBrand").value = p.brand;
+        document.getElementById("fImage").value = p.image;
+        document.getElementById("fShort").value = p.shortDescription;
+        document.getElementById("fDesc").value = p.description;
+        document.getElementById("fDisc").value = p.discountPercent ?? 0;
+        document.getElementById("fSpecs").value = JSON.stringify(p.specs || [], null, 2);
+        document.getElementById("fReviews").value = JSON.stringify(p.reviews || [], null, 2);
+      }
+
+      async function saveProduct(e) {
+        e.preventDefault();
+        const err = document.getElementById("formErr");
+        err.textContent = "";
+        const slug = document.getElementById("fSlug").value.trim();
+        let specs;
+        let reviews;
+        try {
+          specs = JSON.parse(document.getElementById("fSpecs").value || "[]");
+          reviews = JSON.parse(document.getElementById("fReviews").value || "[]");
+        } catch {
+          err.textContent = "Invalid JSON in specs or reviews.";
+          return;
+        }
+        const body = {
+          slug,
+          id: slug,
+          name: document.getElementById("fName").value.trim(),
+          price: Number(document.getElementById("fPrice").value),
+          rating: Number(document.getElementById("fRating").value || 0),
+          category: document.getElementById("fCategory").value.trim(),
+          brand: document.getElementById("fBrand").value.trim(),
+          image: document.getElementById("fImage").value.trim(),
+          shortDescription: document.getElementById("fShort").value.trim(),
+          description: document.getElementById("fDesc").value.trim(),
+          discountPercent: Number(document.getElementById("fDisc").value || 0),
+          specs,
+          reviews,
+        };
+        try {
+          if (editingSlug) {
+            await adminApi(`/admin/api/products/${encodeURIComponent(editingSlug)}`, {
+              method: "PUT",
+              body: JSON.stringify(body),
+            });
+          } else {
+            await adminApi("/admin/api/products", { method: "POST", body: JSON.stringify(body) });
+          }
+          closeEditor();
+          await loadTable();
+        } catch (ex) {
+          err.textContent = ex.message;
+        }
+      }
+
+      async function removeProduct(slug) {
+        if (!confirm(`Delete ${slug}?`)) return;
+        await adminApi(`/admin/api/products/${encodeURIComponent(slug)}`, { method: "DELETE" });
+        await loadTable();
+      }
+
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+    </script>
+  </body>
+</html>

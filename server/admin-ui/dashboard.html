@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard | AURASOUND Admin</title>
+    <link rel="stylesheet" href="/admin/admin.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">AURA<span style="color: var(--accent)">ADMIN</span></div>
+        <nav>
+          <a class="active" href="/admin/dashboard.html">Dashboard</a>
+          <a href="/admin/users.html">Users</a>
+          <a href="/admin/products.html">Products</a>
+          <a href="/admin/orders.html">Orders</a>
+          <a href="/admin/messages.html">Messages</a>
+          <a href="#" id="logoutLink">Logout</a>
+        </nav>
+      </aside>
+      <main>
+        <h1>Dashboard</h1>
+        <div class="stats" id="stats"></div>
+      </main>
+    </div>
+    <script src="/admin/admin-shared.js"></script>
+    <script>
+      requireAdminSession().then(async (user) => {
+        if (!user) return;
+        document.getElementById("logoutLink").addEventListener("click", (e) => {
+          e.preventDefault();
+          logout();
+        });
+        const d = await adminApi("/admin/api/dashboard");
+        document.getElementById("stats").innerHTML = `
+          <div class="stat"><span class="muted">Users</span><strong>${d.users}</strong></div>
+          <div class="stat"><span class="muted">Products</span><strong>${d.products}</strong></div>
+          <div class="stat"><span class="muted">Orders</span><strong>${d.orders}</strong></div>
+          <div class="stat"><span class="muted">Unread messages</span><strong>${d.unreadMessages}</strong></div>`;
+      });
+    </script>
+  </body>
+</html>

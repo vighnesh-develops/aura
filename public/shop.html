@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shop | AURASOUND</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <canvas id="globalBgCanvas"></canvas>
+    <nav class="navbar">
+      <div class="container nav-inner">
+        <a class="logo" href="index.html">AURA<span>SOUND</span></a>
+        <div class="menu">
+          <a href="index.html">Home</a>
+          <a class="active" href="shop.html">Shop</a>
+          <a href="orders.html">My Orders</a>
+          <a href="index.html#about">About</a>
+          <a href="index.html#contact">Contact</a>
+        </div>
+        <div class="search">
+          <input id="globalSearch" type="text" placeholder="Search headphones..." />
+        </div>
+        <a class="cart-pill" href="cart.html" aria-label="Go to cart">
+          🛒 <span class="cart-count" id="cartCount">0</span>
+        </a>
+      </div>
+    </nav>
+
+    <section class="container scene-wrap shop-scene-wrap">
+      <div id="shopScene"></div>
+      <div class="shop-scene-copy">
+        <h2>3D Audio Experience</h2>
+        <p class="muted">Explore premium headphones with immersive futuristic visuals.</p>
+      </div>
+    </section>
+
+    <section class="container category-sections" aria-label="Quick product categories">
+      <button class="category-card active" type="button" data-category-jump="All">
+        <span>All</span>
+        <strong>Full Collection</strong>
+        <small>Browse every product</small>
+      </button>
+      <button class="category-card" type="button" data-category-jump="Gaming">
+        <span>Gaming</span>
+        <strong>Gaming Headphones</strong>
+        <small>Low latency and mic clarity</small>
+      </button>
+      <button class="category-card" type="button" data-category-jump="Wireless">
+        <span>Wireless</span>
+        <strong>Wireless Headphones</strong>
+        <small>ANC, travel, and Bluetooth</small>
+      </button>
+      <button class="category-card" type="button" data-category-jump="Wired">
+        <span>Wired</span>
+        <strong>Wired Headphones</strong>
+        <small>Studio and daily listening</small>
+      </button>
+      <button class="category-card" type="button" data-category-jump="Airbuds">
+        <span>Airbuds</span>
+        <strong>Airbuds</strong>
+        <small>Compact everyday audio</small>
+      </button>
+    </section>
+
+    <main class="container shop-layout">
+      <aside class="glass">
+        <h3>Filters</h3>
+        <div class="filter-group">
+          <label for="priceRange">Max Price</label>
+          <input type="range" min="3000" max="15000" step="500" id="priceRange" value="15000" />
+          <p class="muted">Up to: <span id="priceValue"></span></p>
+        </div>
+        <div class="filter-group">
+          <label for="categoryFilter">Category</label>
+          <select id="categoryFilter">
+            <option value="All">All</option>
+            <option value="Wireless">Wireless</option>
+            <option value="Wired">Wired</option>
+            <option value="Gaming">Gaming</option>
+            <option value="Airbuds">Airbuds</option>
+            <option value="Headset">Headset</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="brandFilter">Brand</label>
+          <select id="brandFilter">
+            <option value="All">All</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="ratingFilter">Minimum Rating</label>
+          <select id="ratingFilter">
+            <option value="0">All</option>
+            <option value="4">4.0+</option>
+            <option value="4.5">4.5+</option>
+            <option value="4.8">4.8+</option>
+          </select>
+        </div>
+      </aside>
+
+      <section>
+        <div class="section-head">
+          <h2>All Headphones</h2>
+          <p class="muted"><span id="resultsCount">0</span> products</p>
+        </div>
+        <div id="shopGrid" class="product-grid"></div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>&copy; 2026 AURASOUND. Built for pure listening pleasure.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.min.js"></script>
+    <script src="js/products.js"></script>
+    <script src="js/shop.js"></script>
+    <script src="js/bg.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  </body>
+</html>

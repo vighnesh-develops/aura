@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Login | AURASOUND</title>
+    <link rel="stylesheet" href="/admin/admin.css" />
+  </head>
+  <body>
+    <div class="login-shell">
+      <h1 style="margin-top: 0">AURASOUND Admin</h1>
+      <p class="muted" style="color: var(--muted); margin-top: 0">Sign in with your administrator account.</p>
+      <form id="loginForm" class="form-grid">
+        <label>
+          Email
+          <input type="email" name="email" required autocomplete="username" />
+        </label>
+        <label>
+          Password
+          <input type="password" name="password" required autocomplete="current-password" />
+        </label>
+        <button class="primary" type="submit">Sign in</button>
+        <p id="err" class="error"></p>
+      </form>
+    </div>
+    <script src="/admin/admin-shared.js"></script>
+    <script>
+      const form = document.getElementById("loginForm");
+      const err = document.getElementById("err");
+
+      adminApi("/admin/api/me")
+        .then((me) => {
+          if (me.loggedIn) window.location.href = "/admin/dashboard.html";
+        })
+        .catch(() => {});
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        err.textContent = "";
+        const fd = new FormData(form);
+        try {
+          await adminApi("/admin/api/login", {
+            method: "POST",
+            body: JSON.stringify({
+              email: fd.get("email"),
+              password: fd.get("password"),
+            }),
+          });
+          window.location.href = "/admin/dashboard.html";
+        } catch (ex) {
+          err.textContent = ex.message || "Login failed";
+        }
+      });
+    </script>
+  </body>
+</html>

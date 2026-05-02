@@ -65,7 +65,7 @@ const initProductScene = () => {
   mount.appendChild(renderer.domElement);
 
   const group = new THREE.Group();
-  const orbGeo = new THREE.IcosahedronGeometry(1.4, 1);
+  const orbGeo = new THREE.TorusKnotGeometry(1.2, 0.4, 128, 32);
   const orbMat = new THREE.MeshStandardMaterial({
     color: 0x3dd7ff,
     metalness: 0.45,
@@ -94,11 +94,43 @@ const initProductScene = () => {
   point.position.set(2, 3, 4);
   scene.add(point);
 
+  const clock = new THREE.Clock();
+  
+  let scrollProgress = 0;
+  window.addEventListener('scroll', () => {
+    // Calculate how far down the page we've scrolled
+    const maxScroll = Math.max(document.body.scrollHeight - window.innerHeight, 1);
+    scrollProgress = Math.min(Math.max(window.scrollY / maxScroll, 0), 1) || 0;
+  });
+
   const animate = () => {
     requestAnimationFrame(animate);
-    group.rotation.y += 0.004;
-    group.rotation.x += 0.0015;
-    particles.rotation.y -= 0.002;
+    const elapsedTime = clock.getElapsedTime();
+    
+    // Base continuous animations
+    group.rotation.x = Math.sin(elapsedTime * 0.3) * 0.2;
+    particles.rotation.y = elapsedTime * -0.1;
+    particles.children.forEach((p, i) => {
+       p.position.y += Math.sin(elapsedTime * 2 + i) * 0.01;
+    });
+
+    // Scroll-linked animations (Lerping for smoothness)
+    // Rotate model as user scrolls
+    const targetRotationY = elapsedTime * 0.2 + (scrollProgress * Math.PI * 4);
+    group.rotation.y += (targetRotationY - group.rotation.y) * 0.08;
+    
+    // Scale orb based on scroll
+    const targetScale = 1 + (scrollProgress * 1.2) + Math.sin(elapsedTime * 2) * 0.05;
+    orb.scale.set(targetScale, targetScale, targetScale);
+    
+    // Shift camera down to create parallax against scrolling content
+    const targetCameraY = scrollProgress * -2.5;
+    camera.position.y += (targetCameraY - camera.position.y) * 0.08;
+    
+    // Shift camera closer
+    const targetCameraZ = 5 - (scrollProgress * 2);
+    camera.position.z += (targetCameraZ - camera.position.z) * 0.08;
+
     renderer.render(scene, camera);
   };
   animate();
@@ -112,5 +144,6 @@ const initProductScene = () => {
 
 updateCartBadge();
 window.addEventListener("cart:updated", updateCartBadge);
+window.addEventListener("catalog:updated", renderDetail);
 setupSearchRedirect();
 renderDetail();
