@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Track Order | AURASOUND</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="help-center-bar">
+      <div class="container help-bar-inner">
+        <span>Customer Service: +91 90000 12345 (9AM - 9PM IST)</span>
+        <div class="help-links">
+          <a href="track.html">Track Order</a>
+          <a href="#contact">Help Centre</a>
+        </div>
+      </div>
+    </div>
+    <canvas id="globalBgCanvas"></canvas>
+    <nav class="navbar">
+      <div class="container nav-inner">
+        <a class="logo" href="index.html" aria-label="AURASOUND home">AURA<span>SOUND</span></a>
+        <div class="menu">
+          <a href="index.html">Home</a>
+          <a href="shop.html">Shop</a>
+          <a href="order.html">My Orders</a>
+          <a href="index.html#about">About</a>
+          <a href="index.html#contact">Contact</a>
+          <a href="login.html">Login</a>
+        </div>
+        <div class="search">
+          <input id="globalSearch" type="text" placeholder="Search headphones..." autocomplete="off" />
+        </div>
+        <a class="cart-pill" href="cart.html" aria-label="Go to cart">
+          Cart <span class="cart-count" id="cartCount">0</span>
+        </a>
+      </div>
+    </nav>
+
+    <main class="container">
+      <div class="section-head">
+        <h2>Track Your Order</h2>
+      </div>
+
+      <section class="glass track-search">
+        <div>
+          <h3>Enter Order ID</h3>
+          <p class="muted">Use the order ID shown after checkout, for example AS-260502-ABCDE.</p>
+        </div>
+        <form id="trackForm" class="track-form">
+          <input id="trackOrderId" type="text" placeholder="Order ID" required />
+          <button class="btn btn-primary" type="submit">Track</button>
+        </form>
+      </section>
+
+      <section class="glass hidden" id="trackingResult"></section>
+    </main>
+
+    <footer class="footer">
+      <p>&copy; 2026 AURASOUND.</p>
+    </footer>
+
+    <script src="js/api-config.js"></script>
+    <script src="js/products.js"></script>
+    <script>
+      const cartCountNode = document.getElementById("cartCount");
+      const searchInput = document.getElementById("globalSearch");
+      const trackForm = document.getElementById("trackForm");
+      const trackOrderId = document.getElementById("trackOrderId");
+      const trackingResult = document.getElementById("trackingResult");
+
+      const updateCartBadge = () => {
+        cartCountNode.textContent = Store.cartCount();
+      };
+
+      const setupSearchRedirect = () => {
+        searchInput.addEventListener("input", (event) => {
+          const q = event.target.value.trim();
+          if (q.length < 2) return;
+          window.location.href = "shop.html?search=" + encodeURIComponent(q);
+        });
+      };
+
+      const formatINR = (amount) => {
+        return "₹" + Number(amount || 0).toLocaleString("en-IN");
+      };
+
+      const formatDate = (dateStr) => {
+        if (!dateStr) return "—";
+        const d = new Date(dateStr);
+        return d.toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      };
+
+      const escapeHtml = (s) => {
+        return String(s || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      };
+
+      const statusSteps = (order) => {
+        const placedAt = order.placed_at ? new Date(order.placed_at) : new Date();
+        const ageHours = Math.max(0, (Date.now() - placedAt.getTime()) / 36e5);
+        
+        // Use actual status if available
+        const status = order.status;
+        if (status === "Cancelled") {
+          return [{ label: "Order Placed", done: true }, { label: "Cancelled", done: true }];
+        }
+        
+        const activeIndex = ageHours >= 48 ? 3 : ageHours >= 24 ? 2 : ageHours >= 2 ? 1 : 0;
+        const steps = [
+          { label: "Order Placed", done: activeIndex >= 0 },
+          { label: "Payment Verified", done: activeIndex >= 1 },
+          { label: "Packed", done: activeIndex >= 2 },
+          { label: "Out for Delivery", done: activeIndex >= 3 }
+        ];
+        return steps;
+      };
+
+      const orderItemsHtml = (items) => {
+        if (!Array.isArray(items)) return "";
+        return items
+          .map((item) => {
+            const name = item.product_name || item.product_slug || "Unknown";
+            const qty = item.quantity || 1;
+            const price = item.unit_price || 0;
+            const total = item.line_total || price * qty;
+            return `<li>${escapeHtml(name)} x ${qty} - ${formatINR(total)}</li>`;
+          })
+          .join("");
+      };
+
+      const renderTracking = async (id) => {
+        trackingResult.classList.remove("hidden");
+
+        try {
+          // Fetch orders from backend
+          const response = await fetch(window.AURASOUND_API_BASE + "/api/orders");
+          if (!response.ok) {
+            throw new Error("Failed to fetch orders");
+          }
+          const orders = await response.json();
+          const order = orders.find((o) => o.public_id === id);
+
+          if (!order) {
+            trackingResult.innerHTML = `
+              <h3>Order Not Found</h3>
+              <p class="muted">Check the order ID from your confirmation page and try again.</p>
+            `;
+            return;
+          }
+
+          const steps = statusSteps(order);
+          const currentStatus = order.status || "Order Placed";
+          const placedAt = order.placed_at ? new Date(order.placed_at) : new Date();
+          const eta = new Date(placedAt.getTime() + 4 * 24 * 60 * 60 * 1000); // 3-5 business days
+
+          trackingResult.innerHTML = `
+            <div class="tracking-head">
+              <div>
+                <p class="muted">Order ID</p>
+                <h3>${escapeHtml(order.public_id)}</h3>
+              </div>
+              <span class="tracking-status">${escapeHtml(currentStatus)}</span>
+            </div>
+            <p class="muted"><strong>Customer:</strong> ${escapeHtml(order.customer_name)}</p>
+            <p class="muted"><strong>Address:</strong> ${escapeHtml(order.address)}</p>
+            <p class="muted"><strong>Placed:</strong> ${formatDate(order.placed_at)}</p>
+            <p class="muted"><strong>Estimated Delivery:</strong> ${eta.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} (3-5 business days)</p>
+            <div class="tracking-steps">
+              ${steps
+                .map(
+                  (step) => `
+                  <div class="tracking-step ${step.done ? "done" : ""}">
+                    <span></span>
+                    <p>${step.label}</p>
+                  </div>
+                `
+                )
+                .join("")}
+            </div>
+            <h3>Items</h3>
+            <ul class="spec-list">${orderItemsHtml(order.items)}</ul>
+            <h3>Total: ${formatINR(order.total)}</h3>
+          `;
+        } catch (e) {
+          console.error("Error tracking order:", e);
+          trackingResult.innerHTML = `
+            <h3>Error</h3>
+            <p class="muted">Unable to track order. Please try again later.</p>
+          `;
+        }
+      };
+
+      trackForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        renderTracking(trackOrderId.value);
+      });
+
+      // Check for order ID in URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const initialId = urlParams.get("id");
+      if (initialId) {
+        trackOrderId.value = initialId;
+        renderTracking(initialId);
+      }
+
+      updateCartBadge();
+      window.addEventListener("cart:updated", updateCartBadge);
+      setupSearchRedirect();
+    </script>
+    <script src="js/bg.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  </body>
+</html>
