@@ -16,16 +16,25 @@ const paymentQrImage = document.getElementById("paymentQrImage");
 let selectedPayment = "";
 
 const syncOrderToServer = async (order) => {
-  const base = window.AURASOUND_API_BASE;
-  if (base === undefined || base === null) return;
+  let base = window.AURASOUND_API_BASE;
+  // Handle empty string as localhost
+  if (base === "" || base === undefined || base === null) {
+    base = "http://localhost:3000";
+  }
   try {
     const root = String(base).replace(/\/$/, "");
-    await fetch(`${root}/api/orders`, {
+    const response = await fetch(`${root}/api/orders`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(order),
     });
-  } catch {
+    if (!response.ok) {
+      console.error("Failed to sync order to server:", response.status);
+    } else {
+      console.log("Order synced to server successfully");
+    }
+  } catch (e) {
+    console.error("Error syncing order to server:", e.message);
     /* offline API — local order still saved */
   }
 };

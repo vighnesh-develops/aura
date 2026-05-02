@@ -62,6 +62,10 @@ function createPublicRouter({ productsRepo, contactRepo, ordersRepo }) {
     }
   });
 
+  r.get("/orders", (_req, res) => {
+    res.json(ordersRepo.listWithItems());
+  });
+
   return r;
 }
 

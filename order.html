@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Orders | AURASOUND</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="help-center-bar">
+      <div class="container help-bar-inner">
+        <span>Customer Service: +91 90000 12345 (9AM - 9PM IST)</span>
+        <div class="help-links">
+          <a href="track.html">Track Order</a>
+          <a href="#contact">Help Centre</a>
+        </div>
+      </div>
+    </div>
+    <canvas id="globalBgCanvas"></canvas>
+    <nav class="navbar">
+      <div class="container nav-inner">
+        <a class="logo" href="index.html" aria-label="AURASOUND home">AURA<span>SOUND</span></a>
+        <div class="menu">
+          <a href="index.html">Home</a>
+          <a href="shop.html">Shop</a>
+          <a class="active" href="order.html">My Orders</a>
+          <a href="index.html#about">About</a>
+          <a href="index.html#contact">Contact</a>
+          <a href="login.html">Login</a>
+        </div>
+        <div class="search">
+          <input id="globalSearch" type="text" placeholder="Search headphones..." autocomplete="off" />
+        </div>
+        <a class="cart-pill" href="cart.html" aria-label="Go to cart">
+          Cart <span class="cart-count" id="cartCount">0</span>
+        </a>
+      </div>
+    </nav>
+
+    <main class="container">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Purchase history</p>
+          <h2>My Orders</h2>
+        </div>
+        <a class="btn" href="track.html">Track by ID</a>
+      </div>
+
+      <section id="ordersList" class="orders-list"></section>
+
+      <div id="orderDetails" class="order-details" style="display: none;"></div>
+    </main>
+
+    <footer class="footer">
+      <p>&copy; 2026 AURASOUND.</p>
+    </footer>
+
+    <script src="js/api-config.js"></script>
+    <script src="js/products.js"></script>
+    <script>
+      const cartCountNode = document.getElementById("cartCount");
+      const searchInput = document.getElementById("globalSearch");
+      const ordersList = document.getElementById("ordersList");
+      const orderDetails = document.getElementById("orderDetails");
+
+      const updateCartBadge = () => {
+        cartCountNode.textContent = Store.cartCount();
+      };
+
+      const setupSearchRedirect = () => {
+        searchInput.addEventListener("input", (event) => {
+          const q = event.target.value.trim();
+          if (q.length < 2) return;
+          window.location.href = "shop.html?search=" + encodeURIComponent(q);
+        });
+      };
+
+      const latestStatus = (order) => {
+        if (order.status) return order.status;
+        const placedAt = order.placed_at ? new Date(order.placed_at) : new Date();
+        const ageHours = Math.max(0, (Date.now() - placedAt.getTime()) / 36e5);
+        if (ageHours >= 48) return "Out for Delivery";
+        if (ageHours >= 24) return "Packed";
+        if (ageHours >= 2) return "Payment Verified";
+        return "Order Placed";
+      };
+
+      const formatINR = (amount) => {
+        return "₹" + Number(amount || 0).toLocaleString("en-IN");
+      };
+
+      const formatDate = (dateStr) => {
+        if (!dateStr) return "—";
+        const d = new Date(dateStr);
+        return d.toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      };
+
+      const escapeHtml = (s) => {
+        return String(s || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      };
+
+      const itemSummary = (items) => {
+        if (!Array.isArray(items)) return "—";
+        return items
+          .map((item) => escapeHtml(item.product_name || item.product_slug) + " x " + item.quantity)
+          .join(", ");
+      };
+
+      const showOrderDetails = (order) => {
+        ordersList.style.display = "none";
+        orderDetails.style.display = "block";
+        orderDetails.innerHTML = `
+          <button class="btn btn-ghost" onclick="hideOrderDetails()" style="margin-bottom: 1rem;">← Back to Orders</button>
+          <article class="glass order-card">
+            <div class="order-card-head">
+              <div>
+                <p class="muted">Order ID</p>
+                <h3>${escapeHtml(order.public_id)}</h3>
+              </div>
+              <span class="tracking-status">${escapeHtml(latestStatus(order))}</span>
+            </div>
+            <p class="muted"><strong>Placed:</strong> ${formatDate(order.placed_at)}</p>
+            <p class="muted"><strong>Customer:</strong> ${escapeHtml(order.customer_name)}</p>
+            <p class="muted"><strong>Email:</strong> ${escapeHtml(order.email)}</p>
+            <p class="muted"><strong>Phone:</strong> ${escapeHtml(order.phone)}</p>
+            <p class="muted"><strong>Address:</strong> ${escapeHtml(order.address)}</p>
+            <p class="muted"><strong>Payment:</strong> ${escapeHtml(order.payment_method)}</p>
+            <p class="muted"><strong>Items:</strong> ${itemSummary(order.items)}</p>
+            <div class="order-card-foot">
+              <strong>${formatINR(order.total)}</strong>
+              <a class="btn btn-primary" href="track.html?id=${encodeURIComponent(order.public_id)}">Track Order</a>
+            </div>
+          </article>
+        `;
+      };
+
+      const hideOrderDetails = () => {
+        orderDetails.style.display = "none";
+        ordersList.style.display = "block";
+        renderOrders();
+      };
+
+      window.showOrderDetails = showOrderDetails;
+      window.hideOrderDetails = hideOrderDetails;
+
+      // Fetch orders from backend
+      const fetchOrders = async () => {
+        try {
+          const response = await fetch(window.AURASOUND_API_BASE + "/api/orders");
+          if (!response.ok) {
+            throw new Error("Failed to fetch orders");
+          }
+          return await response.json();
+        } catch (e) {
+          console.error("Error fetching orders:", e);
+          return [];
+        }
+      };
+
+      const renderOrders = async () => {
+        const orders = await fetchOrders();
+
+        if (!orders.length) {
+          ordersList.innerHTML = `
+            <section class="glass empty-orders">
+              <h3>No orders yet</h3>
+              <p class="muted">Your completed purchases will appear here after checkout.</p>
+              <a class="btn btn-primary" href="shop.html">Start Shopping</a>
+            </section>
+          `;
+          return;
+        }
+
+        ordersList.innerHTML = orders
+          .map(
+            (order) => `
+            <article class="glass order-card">
+              <div class="order-card-head">
+                <div>
+                  <p class="muted">Order ID</p>
+                  <h3>${escapeHtml(order.public_id)}</h3>
+                </div>
+                <span class="tracking-status">${escapeHtml(latestStatus(order))}</span>
+              </div>
+              <p class="muted"><strong>Placed:</strong> ${formatDate(order.placed_at)}</p>
+              <p class="muted"><strong>Payment:</strong> ${escapeHtml(order.payment_method)}</p>
+              <p class="muted"><strong>Items:</strong> ${itemSummary(order.items)}</p>
+              <div class="order-card-foot">
+                <strong>${formatINR(order.total)}</strong>
+                <div style="display: flex; gap: 0.5rem;">
+                  <button class="btn btn-ghost" onclick='showOrderDetailById("${escapeHtml(order.public_id)}")'>View Details</button>
+                  <a class="btn btn-primary" href="track.html?id=${encodeURIComponent(order.public_id)}">Track Order</a>
+                </div>
+              </div>
+            </article>
+          `
+          )
+          .join("");
+      };
+
+      const showOrderDetailById = async (orderId) => {
+        const orders = await fetchOrders();
+        const order = orders.find((o) => o.public_id === orderId);
+        if (order) {
+          showOrderDetails(order);
+        }
+      };
+
+      window.showOrderDetailById = showOrderDetailById;
+
+      updateCartBadge();
+      window.addEventListener("cart:updated", updateCartBadge);
+      setupSearchRedirect();
+      renderOrders();
+    </script>
+    <script src="js/bg.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  </body>
+</html>
